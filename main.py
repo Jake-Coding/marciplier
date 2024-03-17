@@ -94,7 +94,7 @@ class LibraryItem:
 class Book(LibraryItem):
     def __init__(self, authors: list[str], publish_info: PublishingInfo, title: str, subtitle=None,
                  ISBN=None, LCCN=None, DDC=None, edition : int = None,
-                 curr_loc=None, notes=None, item_type=None, is_periodical=False):
+                 curr_loc=None, notes=None, item_type=None, is_periodical=False, periodical_freq = None, periodical_date = None):
         if not item_type:
             item_type = "a"
         assert item_type in ('a', 't')
@@ -109,6 +109,8 @@ class Book(LibraryItem):
         self.location = curr_loc
         self.notes = "" if not notes else notes
         self.is_periodical = is_periodical
+        self.periodical_freq = periodical_freq
+        self.periodical_date = periodical_date
 
 
         self.libraryID = "THETACHI"
@@ -133,7 +135,7 @@ class Book(LibraryItem):
             ], "##")
         )
 
-    def create_1xx(self):
+    def build_1xx(self):
         hundred_item: Field
         if "theta chi" in self.authors[0].lower():
             hundred_item = Field("110")
@@ -142,19 +144,17 @@ class Book(LibraryItem):
             hundred_item.add_subfield_by_elms("d", self.publish_info.publishing_date)
             hundred_item.change_indicator("2#")
             return hundred_item
-        hundred_item = Field("100", suffix=".")
-        if "," in self.authors[0]:
-            hundred_item.change_indicator("1#")
         else:
-            hundred_item.change_indicator("0#")
-        if self.authors[0] == "Multiple":
-            hundred_item.add_subfield_by_elms("a", "Various Authors")
-        else:
-            hundred_item.add_subfield_by_elms("a", self.authors[0])
-        return hundred_item
-
-    def build_1xx(self):
-        self.MARCInfo.append(self.create_1xx())
+            hundred_item = Field("100", suffix=".")
+            if "," in self.authors[0]:
+                hundred_item.change_indicator("1#")
+            else:
+                hundred_item.change_indicator("0#")
+            if self.authors[0] == "Multiple":
+                hundred_item.add_subfield_by_elms("a", "Various Authors")
+            else:
+                hundred_item.add_subfield_by_elms("a", self.authors[0])
+        self.MARCInfo.append(hundred_item)
 
     def build_2xx(self):
         title = Field("245")
@@ -201,6 +201,33 @@ class Book(LibraryItem):
         physical_desc.add_subfield_by_elms("a", "1 v.")
         physical_desc.add_subfield_by_elms("c", "cm.", prefix=" ;")
         self.MARCInfo.append(physical_desc)
+
+        if self.is_periodical:
+            frequency = Field("310", indicator="##")
+            frequency.add_subfield_by_elms("a", self.periodical_freq)
+            self.MARCInfo.append(frequency)
+
+            pub_date = Field("362", indicator="0#")
+            pub_date.add_subfield_by_elms("a", self.periodical_date)
+            self.MARCInfo.append(pub_date)
+
+    def build_5xx(self):
+        note_field = Field("500", indicator="##", suffix=".")
+        note_text = self.notes + "; 245c not directly copied. Oops"
+        note_field.add_subfield_by_elms("a", note_text)
+        self.MARCInfo.append(note_field)
+
+    def build_7xx(self):
+        if len(self.authors) > 1:
+            for author in self.authors[1:]:
+                author_item = Field("700", suffix=".")
+                if "," in author:
+                    author_item.change_indicator("1#")
+                else:
+                    author_item.change_indicator("0#")
+                author_item.add_subfield_by_elms("a", self.authors[0])
+
+
 
 
 
