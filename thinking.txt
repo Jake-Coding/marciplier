@@ -1,0 +1,73 @@
+leader: 000
+position 6 (record type): default to a (text). o=kits, r=3d stuff, t=manuscript
+pos 7 (bib level): default to m (monograph), s=serial/periodical
+
+ctrlnum: 001
+12 digits--- prefix with initials?
+
+ctrlnumid: 003
+assigned by LOC. Request one?
+
+date/time of latest transaction: 005
+16 characters long in the format: yyyymmddhhuuss.t
+
+fixed len elems: 008
+positions 00-05: date of creation yymmdd
+pos 06: type of publication date: default to s (single year). c=current periodical
+pos 07-10: date 1: for s yyyy, for c yyyy
+pos 11-14: date 2: for s ||||, for c 9999
+pos 15-17: country code. based on the state, but can default to xxu (US general)
+pos 35-37: lang of publication. default to eng
+
+ISBN: 020 (optional)
+ \\$aISBN
+
+Cataloging agency: 040
+ see 003. \\ same in $a and $c
+
+1XX: ONLY ONE OF THESE ALLOWED.
+
+    Default to 100 (Personal Name).
+    1#a$Lastname, Firstname or 0#a$Firstname$cTitle
+    $e role i.e. "editor". Default not include
+    $u affilliation
+
+    For OX stuff, 110 (coporate entity).
+    2#$aTheta Chi.$bBeta Nu$ddate if applicable.
+
+
+Title: 245
+Ind: 1 if 1xx field exists, then n \in [0,9] w/ num characters to skip while cataloguing. i.e. if title starts with "The", do 14
+ $a title proper
+ $h general medium designator (for stuff other than text)
+ $b subtitle. Format " :$b"
+ $c statement of responsibility. Directly copied from text/cover page. Copy list of authors probably
+
+Edition: 250 (optional)
+\\$a edition. End with "."
+
+Publishing: 260
+ \\$a place of publication
+ $b publisher
+ $c date of publication yyyy
+
+Physical description: 300
+ \\$a num pages p./amount of Stuff for non-book. Default to 1 Vol. I guess?
+ $b other physical details. Format " :$b"
+ $c dimensions. Technically required but mneh omit it
+
+Publication Frequency (for periodical/serial): 310 (optional)
+ \\$a how often
+
+Sequential Publication Designation (for periodical/serial): 362 (optional)
+ 0\$a date/which issue
+
+400 stuff is for series. Lookup if need
+
+5xx stuff is for notes! 500 $a is general note. Default to \\$a245c not directly copied. Oops.
+
+Subject/topic fields: 6xx. Lookup if want
+
+Additional contributors: 700 (forename/surname 0/1)#
+$a name
+$e contribution: e.g. "author", "editor", etc.
