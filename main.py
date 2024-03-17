@@ -21,7 +21,7 @@ def build_leader(record_status=None, record_type=None, bib_level=None):
     if not record_type: record_type = 'a'
     if not bib_level: bib_level = 'm'
     leader = Field("000", f"00000{record_status}{record_type}{bib_level}##2200000###4500")
-    assert len(leader.subfields) == 24
+    assert len(leader.subfields[0]) == 24
     return leader
 
 
@@ -66,7 +66,7 @@ class Field:
     def __init__(self, tag, subfields: Subfield | list[Subfield] | str = None, indicator=None, suffix=None):
         self.tag = tag
         self.indicator = "" if not indicator else indicator
-        self.subfields = subfields
+        self.subfields = subfields if subfields else []
         if type(subfields) in [str, Subfield]:
             self.subfields = [subfields]
         self.suffix = "" if not suffix else suffix
@@ -105,7 +105,7 @@ class Book(LibraryItem):
         self.ISBN = re.sub(r'\W+', '', ISBN)
         self.LCCN = LCCN
         self.DDC = DDC
-        self.edition = None
+        self.edition = edition
         self.location = curr_loc
         self.notes = "" if not notes else notes
         self.is_periodical = is_periodical
@@ -143,7 +143,7 @@ class Book(LibraryItem):
             hundred_item.add_subfield_by_elms("b", "Beta Nu")
             hundred_item.add_subfield_by_elms("d", self.publish_info.publishing_date)
             hundred_item.change_indicator("2#")
-            return hundred_item
+
         else:
             hundred_item = Field("100", suffix=".")
             if "," in self.authors[0]:
@@ -185,7 +185,7 @@ class Book(LibraryItem):
 
         self.MARCInfo.append(title)
 
-        if self.edition:
+        if self.edition is not None:
             edition_field = Field("250", Subfield("a", f"{self.edition} ed."), "##")
             self.MARCInfo.append(edition_field)
 
@@ -219,23 +219,54 @@ class Book(LibraryItem):
 
     def build_7xx(self):
         if len(self.authors) > 1:
+            print(self.authors)
             for author in self.authors[1:]:
                 author_item = Field("700", suffix=".")
                 if "," in author:
                     author_item.change_indicator("1#")
                 else:
                     author_item.change_indicator("0#")
-                author_item.add_subfield_by_elms("a", self.authors[0])
+                author_item.add_subfield_by_elms("a", author)
+                self.MARCInfo.append(author_item)
+
+    def build(self):
+        self.build_MARC00_info()
+        self.build_1xx()
+        self.build_2xx()
+        self.build_3xx()
+        self.build_5xx()
+        self.build_7xx()
+
+    def __str__(self):
+        s = ""
+        for field in self.MARCInfo:
+            s += str(field) + "\n"
+        return s
 
 
 
 
+if __name__ == "__main__":
+    testbook1 : Book
+    testbook1 = Book([n.strip() for n in "WAHOO".split(";")],
+                     PublishingInfo(
+                         publisher_name="Brooks/Cole",
+                         publishing_date="2013",
 
+                     ), "Biology", "The Dynamic Science", ISBN="978-1-133-58755-2",
+                     edition=1,
+                     )
+    testbook1.build()
+    testbook2 = Book([n.strip() for n in "WAHOO".split(";")],
+                     PublishingInfo(
+                         publisher_name="Brooks/Cole",
+                         publishing_date="2013",
 
+                     ), "Biology", "The Dynamic Science", ISBN="978-1-133-58755-2",
+                     edition=2,
+    )
+    testbook2.build()
+    print(testbook1)
+    print(testbook2)
 
-
-
-class MARCRecord:
-    def __init__(self, book: Book):
-        self.book = book
-        self.fields = []
+# Biology: The Dynamic Science	Russell, Peter J.; Hertz, Paul E.; McMillan, Beverly	Brooks/Cole	2013	978-1-133-58755-2		2012946961			War Room, On Top Of Big Shelf
