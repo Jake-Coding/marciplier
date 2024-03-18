@@ -20,7 +20,7 @@ def build_leader(record_status=None, record_type=None, bib_level=None):
     if not record_status: record_status = 'n'
     if not record_type: record_type = 'a'
     if not bib_level: bib_level = 'm'
-    leader = Field("000", f"00000{record_status}{record_type}{bib_level}##2200000###4500")
+    leader = Field("LDR", f"00000{record_status}{record_type}{bib_level}##2200000###4500")
     assert len(leader.subfields[0]) == 24
     return leader
 
@@ -115,6 +115,7 @@ class Book(LibraryItem):
 
         self.libraryID = "THETACHI"
         self.MARCInfo = []
+        self.id = ""
 
 
     def build_MARC00_info(self) -> None:
@@ -123,7 +124,9 @@ class Book(LibraryItem):
         :return:
         """
         self.MARCInfo.append(build_leader('n', self.type, 'm'))
-        self.MARCInfo.append(build_ctrl())
+        self.id = build_ctrl()
+        self.MARCInfo.append(self.id)
+        self.id = self.id.subfields[0]
         self.MARCInfo.append(Field("003", self.libraryID))
         self.MARCInfo.append(build_datetime())
         self.MARCInfo.append(build_fixed_len_data_elms(self.publish_info, "c" if self.is_periodical else None))
@@ -229,6 +232,27 @@ class Book(LibraryItem):
                 author_item.add_subfield_by_elms("a", author)
                 self.MARCInfo.append(author_item)
 
+    def build852(self): # specific data!
+        '''
+        p = barcode : ID
+        j = call number: BOOK
+        g = circulation modifier: BOOK
+        b = library: BNOX
+        c = shelvingloc
+        :return:
+        '''
+        field852 = Field("852", indicator="##")
+        field852.add_subfield_by_elms("p", self.id)
+        field852.add_subfield_by_elms("j", "BOOK")
+        field852.add_subfield_by_elms("g", "BOOK")
+        field852.add_subfield_by_elms("c", self.location)
+        field852.add_subfield_by_elms("l", "BNOX") # circulating library
+        field852.add_subfield_by_elms("o", "BNOX") # owning library
+        field852.add_subfield_by_elms("z", "Available")
+        field852.add_subfield_by_elms("y", "1")
+        self.MARCInfo.append(field852)
+
+
     def build(self):
         self.build_MARC00_info()
         self.build_1xx()
@@ -236,12 +260,20 @@ class Book(LibraryItem):
         self.build_3xx()
         self.build_5xx()
         self.build_7xx()
+        self.build852()
 
     def __str__(self):
         s = ""
         for field in self.MARCInfo:
             s += str(field) + "\n"
-        return s
+        return s.replace("#", "\\")
+
+    def save(self, filename : str):
+        with open(filename, "w") as file:
+            file.write(str(self))
+
+    def save_by_id(self, folder):
+        self.save(f"{folder}{self.id}.txt")
 
 
 
@@ -268,5 +300,7 @@ if __name__ == "__main__":
     testbook2.build()
     print(testbook1)
     print(testbook2)
+    testbook1.save_by_id("MARKMakerStuffs\\")
+    testbook2.save_by_id("MARKMakerStuffs\\")
 
 # Biology: The Dynamic Science	Russell, Peter J.; Hertz, Paul E.; McMillan, Beverly	Brooks/Cole	2013	978-1-133-58755-2		2012946961			War Room, On Top Of Big Shelf
