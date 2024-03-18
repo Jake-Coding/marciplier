@@ -1,0 +1,14 @@
+=LDR 00000nam\\2200000\\\4500
+=003 jb0000000000
+=003 THETACHI
+=005 20240317192239.0
+=008 240317
+=020 \\$a9781133587552
+=040 \\$aTHETACHI$cTHETACHI
+=100 0\$aWAHOO.
+=245 10$aBiology :$bThe Dynamic Science$cWAHOO
+=250 \\$a1 ed.
+=260 \\$aUSA :$bBrooks/Cole,$c2013.
+=300 \\$a1 v. ;$ccm.
+=500 \\$a; 245c not directly copied. Oops.
+=852 \\$pjb0000000000$jBOOK$gBOOK$cNone$lBNOX$oBNOX$zAvailable$y1
