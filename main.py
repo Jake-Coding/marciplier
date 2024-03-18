@@ -5,7 +5,7 @@ import re
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-ctrl_generator = (f"jb{str(n).rjust(10, "0")}" for n in range(100000000))
+ctrl_generator = (f"jb{str(n).rjust(10, '0')}" for n in range(100000000))
 
 @dataclass
 class PublishingInfo:
